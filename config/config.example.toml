@@ -1,0 +1,64 @@
+# Example TOML configuration for carbon-token-deployment-tool-ts
+#
+# Copy this file to `config.toml` and edit values as needed.
+# - Use `--config path/to/file` to point the CLI at a different file.
+# - Keep real private keys (WIF) out of version control. Use a secrets manager for production.
+#
+# Notes:
+# - Keys use snake_case.
+# - token_metadata_fields is represented as a TOML table for convenience. You may also provide
+#   a JSON string if you prefer (see commented example below).
+# - Numeric values should be unquoted numbers (not strings).
+# - Default example values are safe placeholders — adjust before sending real transactions.
+
+# RPC endpoint to use (local node or public node)
+# rpc = "http://localhost:5172/rpc"
+rpc = "https://testnet.phantasma.info/rpc"
+# rpc = "https://pharpc1.phantasma.info/rpc"
+
+# Chain nexus: "mainnet" or "testnet"
+nexus = "testnet"
+
+# Wallet private key in WIF format (leave empty for read-only / dry-run)
+wif = ""
+
+# Default token symbol used for create token operations
+symbol = "NFTMY"
+
+# Optional: If your token has been deployed already, provide carbon token ID below:
+carbon_token_id = ""
+# Optional: If your token's series has been deployed already, provide carbon series ID below:
+carbon_token_series_id = ""
+
+# Token ROM (HEX-encoded string, optional)
+rom = ""
+
+# NFT instance metadata (used when minting NFT instances):
+nft_metadata_name = "Test NFT Name"
+nft_metadata_description = "Test NFT Description"
+nft_metadata_image_url = "images-assets.nasa.gov/image/PIA13227/PIA13227~orig.jpg"
+nft_metadata_info_url = "https://images.nasa.gov/details/PIA13227"
+# Royalties: numeric value - 10000000 = 1%
+nft_metadata_royalties = 10000000
+
+# Data size limits (numeric)
+create_token_max_data = 1000000000
+create_token_series_max_data = 100000000
+mint_token_max_data = 100000000
+
+# Gas / fee configuration (numeric values)
+gas_fee_base = 10000
+gas_fee_create_token_base = 10000000000
+gas_fee_create_token_symbol = 10000000000
+gas_fee_create_token_series = 2500000000
+gas_fee_multiplier = 10000
+
+# Token-level metadata as a TOML table (preferred)
+[token_metadata_fields]
+name = "My test token!"
+url  = "http://example.com"
+# any other fields you want:
+# description = "Optional description"
+
+# Alternative: provide token metadata as a JSON string (uncomment to use)
+# token_metadata_fields = '{"name":"My test token!","url":"http://example.com"}'

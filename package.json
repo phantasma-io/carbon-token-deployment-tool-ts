@@ -1,0 +1,47 @@
+{
+  "name": "carbon-token-deployment-tool-ts",
+  "version": "0.1.0",
+  "description": "Token deployment tool for Phantasma blockchain",
+  "private": true,
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "carbon-token-deployment-tool-ts": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist && mkdir -p dist",
+    "dev": "ts-node-dev --respawn --transpile-only src/cli.ts",
+    "start": "node --enable-source-maps dist/cli.js",
+    "cli": "npm run build && node dist/cli.js",
+    "lint": "eslint \"src/**/*.{ts,js}\" --fix || true",
+    "test": "echo \"No tests configured\" && exit 0",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "phantasma",
+    "phantasma-sdk-ts",
+    "cli",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@iarna/toml": "*",
+    "phantasma-sdk-ts": "^0.2.0-rc.2",
+    "yargs": "*"
+  },
+  "devDependencies": {
+    "@types/node": "*",
+    "@types/yargs": "*",
+    "@typescript-eslint/eslint-plugin": "*",
+    "@typescript-eslint/parser": "*",
+    "eslint": "*",
+    "ts-node": "*",
+    "ts-node-dev": "*"
+  }
+}
