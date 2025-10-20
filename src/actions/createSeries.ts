@@ -57,7 +57,7 @@ export async function createSeries(cfg: createSeriesCfg, dryRun: boolean) {
     JSON.stringify(cfg.toPrintable(), bigintReplacer, 2),
   );
 
-  const info = SeriesInfoBuilder.Build(
+  const info = SeriesInfoBuilder.build(
     newPhantasmaSeriesId,
     0,
     0,
