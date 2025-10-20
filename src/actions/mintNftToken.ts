@@ -69,7 +69,7 @@ export async function mintNftToken(cfg: mintNftTokenCfg, dryRun: boolean) {
 
   const phantasmaRomData = new Uint8Array();
 
-  const rom = NftRomBuilder.BuildAndSerialize(
+  const rom = NftRomBuilder.buildAndSerialize(
     newPhantasmaNftId,
     cfg.metadataName,
     cfg.metadataDescription,
