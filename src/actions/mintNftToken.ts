@@ -116,9 +116,7 @@ export async function mintNftToken(cfg: mintNftTokenCfg, dryRun: boolean) {
       result,
     );
     console.log(
-      "Deployed NFT with phantasma ID and carbon NFT address:",
-      newPhantasmaNftId,
-      carbonNftAddresses,
+      `Deployed NFT with phantasma ID ${newPhantasmaNftId} and carbon NFT address ${carbonNftAddresses[0]}`,
     );
   } else {
     console.log("Could not mint NFT");
