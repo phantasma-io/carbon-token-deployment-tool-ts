@@ -111,7 +111,15 @@ export async function mintNftToken(cfg: mintNftTokenCfg, dryRun: boolean) {
   const { success, result } = await waitForTx(rpc, txHash);
 
   if (success) {
-    console.log("Deployed NFT with phantasma ID:", newPhantasmaNftId);
+    const carbonNftAddresses = MintNonFungibleTxHelper.parseResult(
+      cfg.carbonTokenId,
+      result,
+    );
+    console.log(
+      "Deployed NFT with phantasma ID and carbon NFT address:",
+      newPhantasmaNftId,
+      carbonNftAddresses,
+    );
   } else {
     console.log("Could not mint NFT");
   }
