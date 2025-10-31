@@ -60,6 +60,10 @@ export async function createToken(cfg: createTokenCfg, dryRun: boolean) {
     JSON.stringify(cfg.toPrintable(), bigintReplacer, 2),
   );
 
+  if(cfg.tokenMetadataFields == null) {
+    throw Error('Token metadata is mandatory');
+  }
+
   const info = TokenInfoBuilder.build(
     cfg.symbol,
     IntX.fromI64(0n),
