@@ -40,9 +40,15 @@ build:
 rb:
     just clean & just build
 
+# Create NFT token
 [group('run')]
 ct: build
     npm start -- --create-token
+
+# Create fungible token
+[group('run')]
+ctf: build
+    npm start -- --create-token --token-type=fungible
 
 [group('run')]
 ctd: build

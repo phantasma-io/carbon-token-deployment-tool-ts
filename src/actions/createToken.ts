@@ -11,6 +11,7 @@ import {
   TokenInfoBuilder,
   TokenMetadataBuilder,
 } from "phantasma-sdk-ts";
+import { TokenType } from "../config";
 import { waitForTx } from "./waitForTx";
 import { bigintReplacer } from "./helpers";
 
@@ -26,6 +27,9 @@ export class createTokenCfg {
     public gasFeeMultiplier: bigint,
     public createTokenMaxData: bigint,
     public tokenMetadataFields: Record<string, string> | undefined | null,
+    public tokenType: TokenType,
+    public tokenMaxSupply: bigint | null,
+    public fungibleDecimals: number | null,
   ) {
     this.rpc = rpc;
     this.nexus = nexus;
@@ -37,6 +41,9 @@ export class createTokenCfg {
     this.gasFeeMultiplier = gasFeeMultiplier;
     this.createTokenMaxData = createTokenMaxData;
     this.tokenMetadataFields = tokenMetadataFields;
+    this.tokenType = tokenType;
+    this.tokenMaxSupply = tokenMaxSupply;
+    this.fungibleDecimals = fungibleDecimals;
   }
 
   toPrintable() {
@@ -60,15 +67,51 @@ export async function createToken(cfg: createTokenCfg, dryRun: boolean) {
     JSON.stringify(cfg.toPrintable(), bigintReplacer, 2),
   );
 
-  if(cfg.tokenMetadataFields == null) {
+  if (cfg.tokenMetadataFields == null) {
     throw Error('Token metadata is mandatory');
+  }
+
+  const tokenType = cfg.tokenType === "fungible" ? "fungible" : "nft";
+  const isFungible = tokenType === "fungible";
+
+  let maxSupply: IntX;
+  let decimals = 0;
+
+  if (isFungible) {
+    if (cfg.tokenMaxSupply == null) {
+      throw Error("token_max_supply is required for fungible tokens");
+    }
+    if (cfg.fungibleDecimals == null) {
+      throw Error("fungible_decimals is required for fungible tokens");
+    }
+    if (!Number.isInteger(cfg.fungibleDecimals) || cfg.fungibleDecimals < 0) {
+      throw Error("fungible_decimals must be a non-negative integer");
+    }
+    if (cfg.fungibleDecimals > 255) {
+      throw Error("fungible_decimals must be <= 255");
+    }
+  }
+
+  const maxSupplyValue =
+    cfg.tokenMaxSupply != null ? cfg.tokenMaxSupply : 0n;
+  if (maxSupplyValue < 0n) {
+    throw Error("token_max_supply must be non-negative");
+  }
+  if (isFungible) {
+    decimals = cfg.fungibleDecimals!;
+    maxSupply = IntX.fromBigInt(maxSupplyValue);
+  } else {
+    maxSupply =
+      maxSupplyValue === 0n
+        ? IntX.fromI64(0n)
+        : IntX.fromBigInt(maxSupplyValue);
   }
 
   const info = TokenInfoBuilder.build(
     cfg.symbol,
-    IntX.fromI64(0n),
-    true,
-    0,
+    maxSupply,
+    !isFungible,
+    decimals,
     senderPubKey,
     TokenMetadataBuilder.buildAndSerialize(cfg.tokenMetadataFields),
   );

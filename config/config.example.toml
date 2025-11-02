@@ -25,6 +25,13 @@ wif = ""
 # Default token symbol used for create token operations
 symbol = "NFTMY"
 
+# Token type: "nft" (default) or "fungible"
+# token_type = "nft"
+
+# Token supply (optional for NFT, required when token_type = "fungible")
+# token_max_supply = 1000000000000
+# fungible_decimals = 8
+
 # Optional: If your token has been deployed already, provide carbon token ID below:
 carbon_token_id = ""
 # Optional: If your token's series has been deployed already, provide carbon series ID below:

@@ -1,6 +1,6 @@
 # carbon-token-deployment-tool-ts
 
-Tool for token deployment, token series creation and NFT minting on Phantasma blockchain.
+Tool for fungible/non-fungible token deployment, token series creation and NFT minting on Phantasma blockchain.
 
 - Provide a clear mapping between TOML keys and CLI flags.
 - Support two modes of operation:
@@ -54,6 +54,13 @@ wif = ""
 # Token symbol used for create token operations
 symbol = "NFTMY"
 
+# Token type: "nft" (default) or "fungible"
+# token_type = "nft"
+
+# Token supply (optional for NFT, required when token_type = "fungible")
+# token_max_supply = 1000000000000
+# fungible_decimals = 8
+
 # To create new token series or NFT you need to provide carbon token identifier
 carbon_token_id = ""
 
@@ -106,6 +113,9 @@ Main flags (examples):
 - `--carbon-token-series-id <id>` (toml: `carbon_token_series_id`)
 - `--rom <string>` (toml: `rom`)
 - `--token-metadata-fields <json>` (toml: table `token_metadata_fields` or string `token_metadata_fields` containing JSON)
+- `--token-type <nft|fungible>` (toml: `token_type`)
+- `--token-max-supply <number>` (toml: `token_max_supply`)
+- `--fungible-decimals <number>` (toml: `fungible_decimals`)
 - `--nft-name <string>` (toml: `nft_metadata_name`)
 - `--nft-description <string>` (toml: `nft_metadata_description`)
 - `--nft-image-url <url>` (toml: `nft_metadata_image_url`)

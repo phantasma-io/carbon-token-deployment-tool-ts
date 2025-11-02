@@ -5,6 +5,8 @@ import yargs from "yargs/yargs";
 
 type TokenMetadataFields = Record<string, string>;
 
+export type TokenType = "nft" | "fungible";
+
 export interface Config {
   // Core / connection
   rpc: string;
@@ -17,6 +19,9 @@ export interface Config {
   carbonTokenSeriesId?: number | null;
   rom?: string | null;
   tokenMetadataFields?: TokenMetadataFields | null;
+  tokenType?: TokenType | null;
+  tokenMaxSupply?: bigint | null;
+  fungibleDecimals?: number | null;
 
   // NFT-specific defaults
   nftName?: string | null;
@@ -164,6 +169,9 @@ export function loadConfig(options?: {
     carbonTokenSeriesId: null,
     rom: null,
     tokenMetadataFields: null,
+    tokenType: null,
+    tokenMaxSupply: null,
+    fungibleDecimals: null,
     nftName: null,
     nftDescription: null,
     nftImageUrl: null,
@@ -223,6 +231,37 @@ export function loadConfig(options?: {
   } else {
     cfg.tokenMetadataFields = null;
   }
+
+  const tokenTypeRaw = pickValue(argv, "token-type", "token_type") as
+    | string
+    | undefined;
+  if (typeof tokenTypeRaw === "string") {
+    const lowered = tokenTypeRaw.trim().toLowerCase();
+    if (lowered === "fungible" || lowered === "nft") {
+      cfg.tokenType = lowered;
+    } else {
+      cfg.tokenType = null;
+    }
+  } else {
+    cfg.tokenType = null;
+  }
+  const rawMaxSupply =
+    (pickValue(argv, "token-max-supply", "token_max_supply") as
+      | string
+      | bigint
+      | undefined) ??
+    (pickValue(argv, "fungible-max-supply", "fungible_max_supply") as
+      | string
+      | bigint
+      | undefined);
+  cfg.tokenMaxSupply = parseBigInt(rawMaxSupply) ?? null;
+  cfg.fungibleDecimals =
+    parseNumber(
+      pickValue(argv, "fungible-decimals", "fungible_decimals") as
+        | string
+        | number
+        | undefined,
+    ) ?? null;
 
   // NFT metadata
   cfg.nftName =

@@ -1,6 +1,6 @@
 import { hideBin } from "yargs/helpers";
 import yargs from "yargs";
-import loadConfig, { Config } from "./config";
+import loadConfig, { Config, TokenType } from "./config";
 import { createToken, createTokenCfg } from "./actions/createToken";
 import { createSeries, createSeriesCfg } from "./actions/createSeries";
 import { mintNftToken, mintNftTokenCfg } from "./actions/mintNftToken";
@@ -39,6 +39,14 @@ async function actionCreateToken(cfg: Config, dryRun: boolean) {
   requireArg(cfg.gasFeeMultiplier, "gas_fee_multiplier");
   requireArg(cfg.createTokenMaxData, "create_token_max_data");
 
+  const tokenType: TokenType =
+    (cfg.tokenType ?? "nft") === "fungible" ? "fungible" : "nft";
+
+  if (tokenType === "fungible") {
+    requireArg(cfg.tokenMaxSupply, "token_max_supply");
+    requireArg(cfg.fungibleDecimals, "fungible_decimals");
+  }
+
   await createToken(
     new createTokenCfg(
       cfg.rpc,
@@ -51,6 +59,9 @@ async function actionCreateToken(cfg: Config, dryRun: boolean) {
       cfg.gasFeeMultiplier,
       cfg.createTokenMaxData,
       cfg.tokenMetadataFields,
+      tokenType,
+      cfg.tokenMaxSupply ?? null,
+      cfg.fungibleDecimals ?? null,
     ),
     dryRun,
   );
@@ -143,6 +154,21 @@ async function main() {
     .option("token-metadata-fields", {
       type: "string",
       describe: "JSON string with token metadata fields",
+    })
+    .option("token-type", {
+      type: "string",
+      choices: ["nft", "fungible"],
+      describe: "Token type to create (default: nft)",
+    })
+    .option("token-max-supply", {
+      type: "string",
+      describe:
+        "Token max supply (optional for NFT; required when --token-type fungible)",
+    })
+    .option("fungible-decimals", {
+      type: "number",
+      describe:
+        "Decimal places for fungible token (required when --token-type fungible)",
     })
     .option("nft-name", { type: "string", describe: "NFT metadata name" })
     .option("dry-run", {
