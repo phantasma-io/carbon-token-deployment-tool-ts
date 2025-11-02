@@ -1,4 +1,4 @@
 dist
 node_modules
 config.toml
-
+USE_ONLY_AS_DOCUMENTATION
