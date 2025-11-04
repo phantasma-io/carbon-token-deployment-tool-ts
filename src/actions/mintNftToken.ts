@@ -9,9 +9,10 @@ import {
   PhantasmaAPI,
   PhantasmaKeys,
   SignedTxMsg,
+  VmStructSchema,
 } from "phantasma-sdk-ts";
 import { waitForTx } from "./waitForTx";
-import { bigintReplacer } from "./helpers";
+import { bigintReplacer, Metadata } from "./helpers";
 
 export class mintNftTokenCfg {
   constructor(
@@ -20,11 +21,8 @@ export class mintNftTokenCfg {
     public wif: string,
     public carbonTokenId: bigint,
     public carbonSeriesId: number,
-    public metadataName: string,
-    public metadataDescription: string,
-    public metadataImageUrl: string,
-    public metadataInfoUrl: string,
-    public metadataRoyalties: number,
+    public nftRomSchema: VmStructSchema,
+    public nftMetadata: Metadata,
     public gasFeeBase: bigint,
     public gasFeeMultiplier: bigint,
     public mintTokenMaxData: bigint,
@@ -34,11 +32,8 @@ export class mintNftTokenCfg {
     this.wif = wif;
     this.carbonTokenId = carbonTokenId;
     this.carbonSeriesId = carbonSeriesId;
-    this.metadataName = metadataName;
-    this.metadataDescription = metadataDescription;
-    this.metadataImageUrl = metadataImageUrl;
-    this.metadataInfoUrl = metadataInfoUrl;
-    this.metadataRoyalties = metadataRoyalties;
+    this.nftRomSchema = nftRomSchema;
+    this.nftMetadata = nftMetadata;
     this.gasFeeBase = gasFeeBase;
     this.gasFeeMultiplier = gasFeeMultiplier;
     this.mintTokenMaxData = mintTokenMaxData;
@@ -46,12 +41,16 @@ export class mintNftTokenCfg {
 
   toPrintable() {
     // Do not leak WIF; derive owner
-    const { wif: _omit, ...rest } = this; // rest has all public fields except wif
+    const { wif: _omit, nftMetadata, ...rest } =
+      this; // rest has all public fields except wif/metadata strings
     const owner = PhantasmaKeys.fromWIF(this.wif).Address.toString();
 
     return {
       ...rest,
       owner,
+      nftMetadata: nftMetadata.fields
+        ? Object.fromEntries(Object.entries(nftMetadata.fields))
+        : null
     };
   }
 }
@@ -67,16 +66,15 @@ export async function mintNftToken(cfg: mintNftTokenCfg, dryRun: boolean) {
     JSON.stringify(cfg.toPrintable(), bigintReplacer, 2),
   );
 
-  const phantasmaRomData = new Uint8Array();
-
   const rom = NftRomBuilder.buildAndSerialize(
+    cfg.nftRomSchema,
     newPhantasmaNftId,
-    cfg.metadataName,
-    cfg.metadataDescription,
-    cfg.metadataImageUrl,
-    cfg.metadataInfoUrl,
-    cfg.metadataRoyalties,
-    phantasmaRomData,
+    cfg.nftMetadata.pickString(false, "name"),
+    cfg.nftMetadata.pickString(false, "description"),
+    cfg.nftMetadata.pickString(false, "imageURL"),
+    cfg.nftMetadata.pickString(false, "infoURL"),
+    cfg.nftMetadata.pickNumber(false, "royalties"),
+    cfg.nftMetadata.pickHexAndDecode(false, "ROM")
   );
 
   const feeOptions = new MintNftFeeOptions(

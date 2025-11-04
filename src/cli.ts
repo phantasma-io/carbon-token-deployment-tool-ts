@@ -58,10 +58,11 @@ async function actionCreateToken(cfg: Config, dryRun: boolean) {
       cfg.gasFeeCreateTokenSymbol,
       cfg.gasFeeMultiplier,
       cfg.createTokenMaxData,
-      cfg.tokenMetadataFields,
+      cfg.tokenSchemas,
+      cfg.tokenMetadata,
       tokenType,
-      cfg.tokenMaxSupply ?? null,
-      cfg.fungibleDecimals ?? null,
+      cfg.tokenMaxSupply,
+      cfg.fungibleDecimals,
     ),
     dryRun,
   );
@@ -72,6 +73,8 @@ async function actionCreateSeries(cfg: Config, dryRun: boolean) {
   requireArg(cfg.nexus, "nexus");
   requireArg(cfg.wif, "wif");
   requireArg(cfg.carbonTokenId, "carbon_token_id");
+  requireArg(cfg.tokenSchemas, "token_schemas");
+  requireArg(cfg.seriesMetadata, "series_metadata");
   requireArg(cfg.gasFeeBase, "gas_fee_base");
   requireArg(cfg.gasFeeCreateTokenSeries, "gas_fee_create_token_series");
   requireArg(cfg.gasFeeMultiplier, "gas_fee_multiplier");
@@ -87,6 +90,8 @@ async function actionCreateSeries(cfg: Config, dryRun: boolean) {
       cfg.gasFeeCreateTokenSeries,
       cfg.gasFeeMultiplier,
       cfg.createTokenSeriesMaxData,
+      cfg.tokenSchemas?.seriesMetadata,
+      cfg.seriesMetadata
     ),
     dryRun,
   );
@@ -98,11 +103,8 @@ async function actionMintNft(cfg: Config, dryRun: boolean) {
   requireArg(cfg.wif, "wif");
   requireArg(cfg.carbonTokenId, "carbon_token_id");
   requireArg(cfg.carbonTokenSeriesId, "carbon_token_series_id");
-  requireArg(cfg.nftName, "nft_name");
-  requireArg(cfg.nftDescription, "nft_description");
-  requireArg(cfg.nftImageUrl, "nft_image_url");
-  requireArg(cfg.nftInfoUrl, "nft_info_url");
-  requireArg(cfg.nftRoyalties, "nft_royalties");
+  requireArg(cfg.tokenSchemas, "token_schemas");
+  requireArg(cfg.nftMetadata, "nft_metadata");
   requireArg(cfg.gasFeeBase, "gas_fee_base");
   requireArg(cfg.gasFeeMultiplier, "gas_fee_multiplier");
   requireArg(cfg.mintTokenMaxData, "mint_token_max_data");
@@ -114,11 +116,8 @@ async function actionMintNft(cfg: Config, dryRun: boolean) {
       cfg.wif,
       cfg.carbonTokenId,
       cfg.carbonTokenSeriesId,
-      cfg.nftName,
-      cfg.nftDescription,
-      cfg.nftImageUrl,
-      cfg.nftInfoUrl,
-      cfg.nftRoyalties,
+      cfg.tokenSchemas.rom,
+      cfg.nftMetadata,
       cfg.gasFeeBase,
       cfg.gasFeeMultiplier,
       cfg.mintTokenMaxData,
@@ -151,10 +150,6 @@ async function main() {
     .option("nexus", { type: "string", describe: "Chain nexus" })
     .option("wif", { type: "string", describe: "WIF for signing" })
     .option("symbol", { type: "string", describe: "Token symbol" })
-    .option("token-metadata-fields", {
-      type: "string",
-      describe: "JSON string with token metadata fields",
-    })
     .option("token-type", {
       type: "string",
       choices: ["nft", "fungible"],
@@ -171,6 +166,12 @@ async function main() {
         "Decimal places for fungible token (required when --token-type fungible)",
     })
     .option("nft-name", { type: "string", describe: "NFT metadata name" })
+    .option("nft-metadata-mode", {
+      type: "string",
+      choices: ["per-nft", "shared"],
+      describe:
+        "Whether metadata lives on each NFT (per-nft) or on the series (shared)",
+    })
     .option("dry-run", {
       type: "boolean",
       describe: "Do not broadcast transactions; just show payloads",

@@ -2,8 +2,8 @@ import fs from "fs";
 import path from "path";
 import toml from "@iarna/toml";
 import yargs from "yargs/yargs";
-
-type TokenMetadataFields = Record<string, string>;
+import { Metadata, MetadataFields } from "./actions/helpers";
+import { TokenSchemas, TokenSchemasBuilder } from "phantasma-sdk-ts";
 
 export type TokenType = "nft" | "fungible";
 
@@ -13,22 +13,22 @@ export interface Config {
   nexus?: string | null;
   wif?: string | null;
 
-  // Token defaults
+  // Token
   symbol?: string | null;
   carbonTokenId?: bigint | null;
-  carbonTokenSeriesId?: number | null;
   rom?: string | null;
-  tokenMetadataFields?: TokenMetadataFields | null;
+  tokenSchemas?: TokenSchemas | null;
+  tokenMetadata: Metadata;
   tokenType?: TokenType | null;
   tokenMaxSupply?: bigint | null;
   fungibleDecimals?: number | null;
 
-  // NFT-specific defaults
-  nftName?: string | null;
-  nftDescription?: string | null;
-  nftImageUrl?: string | null;
-  nftInfoUrl?: string | null;
-  nftRoyalties?: number | null;
+  // Series
+  carbonTokenSeriesId?: number | null;
+  seriesMetadata?: Metadata | null;
+
+  // NFT-specific
+  nftMetadata?: Metadata | null;
 
   // Limits / sizes
   createTokenMaxData?: bigint | null;
@@ -56,7 +56,8 @@ function tryParseJSON<T = unknown>(value?: string | null): T | undefined {
     // Some users may provide single-quoted JSON; normalize quotes if necessary
     const trimmed = value.trim();
     return JSON.parse(trimmed) as T;
-  } catch {
+  } catch(e) {
+    console.error("JSON parsing error: ", e);
     // ignore parse errors; caller will handle fallback
     return undefined;
   }
@@ -168,15 +169,13 @@ export function loadConfig(options?: {
     carbonTokenId: null,
     carbonTokenSeriesId: null,
     rom: null,
-    tokenMetadataFields: null,
+    tokenSchemas: new TokenSchemas(),
+    tokenMetadata: new Metadata(undefined, "token_metadata"),
+    seriesMetadata: new Metadata(undefined, "series_metadata"),
     tokenType: null,
     tokenMaxSupply: null,
     fungibleDecimals: null,
-    nftName: null,
-    nftDescription: null,
-    nftImageUrl: null,
-    nftInfoUrl: null,
-    nftRoyalties: null,
+    nftMetadata: new Metadata(undefined, "nft_metadata"),
     createTokenMaxData: null,
     createTokenSeriesMaxData: null,
     mintTokenMaxData: null,
@@ -215,36 +214,50 @@ export function loadConfig(options?: {
     ) ?? null;
   cfg.rom = (pickValue(argv, "rom", "rom") as string | undefined) ?? null;
 
-  // tokenMetadataFields: attempt CLI -> env -> undefined; parse JSON if string
-  const tmfRaw = pickValue<string>(
-    argv,
-    "token-metadata-fields",
-    "token_metadata_fields",
-  );
-  if (typeof tmfRaw === "string") {
-    cfg.tokenMetadataFields = tryParseJSON<TokenMetadataFields>(tmfRaw) ?? {
-      raw: tmfRaw,
-    };
-  } else if (tmfRaw && typeof tmfRaw === "object") {
-    // yargs may coerce JSON-like strings if shell expands, but unlikely; handle defensively
-    cfg.tokenMetadataFields = tmfRaw as TokenMetadataFields;
-  } else {
-    cfg.tokenMetadataFields = null;
-  }
-
   const tokenTypeRaw = pickValue(argv, "token-type", "token_type") as
     | string
     | undefined;
-  if (typeof tokenTypeRaw === "string") {
-    const lowered = tokenTypeRaw.trim().toLowerCase();
-    if (lowered === "fungible" || lowered === "nft") {
-      cfg.tokenType = lowered;
-    } else {
-      cfg.tokenType = null;
-    }
-  } else {
-    cfg.tokenType = null;
+  if(!tokenTypeRaw){
+    throw Error("Token type must be provided");
   }
+  const lowered = tokenTypeRaw.trim().toLowerCase();
+  if (lowered === "fungible" || lowered === "nft") {
+    cfg.tokenType = lowered;
+  } else {
+    throw Error(`Unsupported token type ${lowered}`);
+  }
+
+  // tokenSchemas
+  if(cfg.tokenType == "nft") {
+    const tokenSchemasRaw = pickValue<string>(
+      argv,
+      "token-schemas",
+      "token_schemas",
+    );
+    if(!tokenSchemasRaw){
+      throw Error("Token schemas must be provided");
+    }
+    cfg.tokenSchemas = TokenSchemasBuilder.fromJson(tokenSchemasRaw);
+  }
+
+
+  // tokenMetadata
+  const tmfRaw = pickValue<string>(
+    argv,
+    "token-metadata",
+    "token_metadata",
+  );
+  cfg.tokenMetadata = new Metadata(tryParseJSON<MetadataFields>(tmfRaw), "token_metadata");
+
+  if(cfg.tokenType == "nft") {
+    const smfRaw = pickValue(
+      argv,
+      "series-metadata",
+      "series_metadata",
+    );
+    cfg.seriesMetadata = new Metadata(tryParseJSON<MetadataFields>(smfRaw), "series_metadata");
+  }
+
   const rawMaxSupply =
     (pickValue(argv, "token-max-supply", "token_max_supply") as
       | string
@@ -263,29 +276,15 @@ export function loadConfig(options?: {
         | undefined,
     ) ?? null;
 
-  // NFT metadata
-  cfg.nftName =
-    (pickValue(argv, "nft-name", "nft_metadata_name") as string | undefined) ??
-    null;
-  cfg.nftDescription =
-    (pickValue(argv, "nft-description", "nft_metadata_description") as
-      | string
-      | undefined) ?? null;
-  cfg.nftImageUrl =
-    (pickValue(argv, "nft-image-url", "nft_metadata_image_url") as
-      | string
-      | undefined) ?? null;
-  cfg.nftInfoUrl =
-    (pickValue(argv, "nft-info-url", "nft_metadata_info_url") as
-      | string
-      | undefined) ?? null;
-  cfg.nftRoyalties =
-    parseNumber(
-      pickValue(argv, "nft-royalties", "nft_metadata_royalties") as
-        | string
-        | number
-        | undefined,
-    ) ?? null;
+  if(cfg.tokenType == "nft") {
+    // NFT metadata
+    const nmfRaw = pickValue(
+      argv,
+      "nft-metadata",
+      "nft_metadata",
+    );
+    cfg.nftMetadata = new Metadata(tryParseJSON<MetadataFields>(nmfRaw), "nft_metadata");
+  }
 
   // Limits and sizes
   cfg.createTokenMaxData =

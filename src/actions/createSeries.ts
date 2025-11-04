@@ -3,15 +3,16 @@ import {
   CarbonBlob,
   CreateSeriesFeeOptions,
   CreateTokenSeriesTxHelper,
-  getRandomPhantasmaId,
-  hexToBytes,
-  SeriesInfoBuilder,
-  SignedTxMsg,
   PhantasmaAPI,
   PhantasmaKeys,
+  SeriesInfoBuilder,
+  SignedTxMsg,
+  VmStructSchema,
+  getRandomPhantasmaId,
+  hexToBytes,
 } from "phantasma-sdk-ts";
 import { waitForTx } from "./waitForTx";
-import { bigintReplacer } from "./helpers";
+import { bigintReplacer, Metadata } from "./helpers";
 
 export class createSeriesCfg {
   constructor(
@@ -23,6 +24,8 @@ export class createSeriesCfg {
     public gasFeeCreateTokenSeries: bigint,
     public gasFeeMultiplier: bigint,
     public createSeriesMaxData: bigint,
+    public seriesSchema: VmStructSchema,
+    public seriesMetadata: Metadata
   ) {
     this.rpc = rpc;
     this.nexus = nexus;
@@ -32,19 +35,26 @@ export class createSeriesCfg {
     this.gasFeeCreateTokenSeries = gasFeeCreateTokenSeries;
     this.gasFeeMultiplier = gasFeeMultiplier;
     this.createSeriesMaxData = createSeriesMaxData;
+    this.seriesSchema = seriesSchema;
+    this.seriesMetadata = seriesMetadata;
   }
 
   toPrintable() {
     // Do not leak WIF; derive owner
-    const { wif: _omit, ...rest } = this; // rest has all public fields except wif
+    const { wif: _omit, seriesMetadata: seriesMetadata, ...rest } = this; // rest has all public fields except wif/sharedRom
     const owner = PhantasmaKeys.fromWIF(this.wif).Address.toString();
 
     return {
       ...rest,
       owner,
+      seriesMetadata: seriesMetadata.fields
+        ? Object.fromEntries(Object.entries(seriesMetadata.fields))
+        : null,
     };
   }
 }
+
+
 
 export async function createSeries(cfg: createSeriesCfg, dryRun: boolean) {
   const txSender = PhantasmaKeys.fromWIF(cfg.wif);
@@ -58,11 +68,17 @@ export async function createSeries(cfg: createSeriesCfg, dryRun: boolean) {
   );
 
   const info = SeriesInfoBuilder.build(
-    newPhantasmaSeriesId,
+    cfg.seriesSchema,
+    await getRandomPhantasmaId(),
     0,
     0,
     senderPubKey,
-    new Uint8Array(),
+    cfg.seriesMetadata.pickString(false, "name"),
+    cfg.seriesMetadata.pickString(false, "description"),
+    cfg.seriesMetadata.pickString(false, "imageURL"),
+    cfg.seriesMetadata.pickString(false, "infoURL"),
+    cfg.seriesMetadata.pickNumber(false, "royalties"),
+    cfg.seriesMetadata.pickHexAndDecode(false, "ROM")
   );
 
   const feeOptions = new CreateSeriesFeeOptions(

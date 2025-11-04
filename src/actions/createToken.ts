@@ -10,10 +10,11 @@ import {
   PhantasmaKeys,
   TokenInfoBuilder,
   TokenMetadataBuilder,
+  TokenSchemas,
 } from "phantasma-sdk-ts";
 import { TokenType } from "../config";
 import { waitForTx } from "./waitForTx";
-import { bigintReplacer } from "./helpers";
+import { bigintReplacer, Metadata } from "./helpers";
 
 export class createTokenCfg {
   constructor(
@@ -26,10 +27,11 @@ export class createTokenCfg {
     public gasFeeCreateTokenSymbol: bigint,
     public gasFeeMultiplier: bigint,
     public createTokenMaxData: bigint,
-    public tokenMetadataFields: Record<string, string> | undefined | null,
+    public tokenSchemas: TokenSchemas | null | undefined,
+    public tokenMetadataFields: Metadata,
     public tokenType: TokenType,
-    public tokenMaxSupply: bigint | null,
-    public fungibleDecimals: number | null,
+    public tokenMaxSupply: bigint | null | undefined,
+    public fungibleDecimals: number | null | undefined,
   ) {
     this.rpc = rpc;
     this.nexus = nexus;
@@ -40,6 +42,7 @@ export class createTokenCfg {
     this.gasFeeCreateTokenSymbol = gasFeeCreateTokenSymbol;
     this.gasFeeMultiplier = gasFeeMultiplier;
     this.createTokenMaxData = createTokenMaxData;
+    this.tokenSchemas = tokenSchemas;
     this.tokenMetadataFields = tokenMetadataFields;
     this.tokenType = tokenType;
     this.tokenMaxSupply = tokenMaxSupply;
@@ -113,7 +116,8 @@ export async function createToken(cfg: createTokenCfg, dryRun: boolean) {
     !isFungible,
     decimals,
     senderPubKey,
-    TokenMetadataBuilder.buildAndSerialize(cfg.tokenMetadataFields),
+    TokenMetadataBuilder.buildAndSerialize(cfg.tokenMetadataFields.fields),
+    cfg.tokenSchemas
   );
 
   const feeOptions = new CreateTokenFeeOptions(

@@ -32,7 +32,7 @@
   "license": "MIT",
   "dependencies": {
     "@iarna/toml": "*",
-    "phantasma-sdk-ts": "^0.2.0-rc.10",
+    "phantasma-sdk-ts": "^0.2.0-rc.12",
     "yargs": "*"
   },
   "devDependencies": {
