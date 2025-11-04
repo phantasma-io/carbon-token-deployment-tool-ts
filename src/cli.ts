@@ -166,12 +166,6 @@ async function main() {
         "Decimal places for fungible token (required when --token-type fungible)",
     })
     .option("nft-name", { type: "string", describe: "NFT metadata name" })
-    .option("nft-metadata-mode", {
-      type: "string",
-      choices: ["per-nft", "shared"],
-      describe:
-        "Whether metadata lives on each NFT (per-nft) or on the series (shared)",
-    })
     .option("dry-run", {
       type: "boolean",
       describe: "Do not broadcast transactions; just show payloads",
