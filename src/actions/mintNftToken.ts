@@ -74,7 +74,7 @@ export async function mintNftToken(cfg: mintNftTokenCfg, dryRun: boolean) {
     cfg.nftMetadata.pickString(false, "imageURL"),
     cfg.nftMetadata.pickString(false, "infoURL"),
     cfg.nftMetadata.pickNumber(false, "royalties"),
-    cfg.nftMetadata.pickHexAndDecode(false, "ROM")
+    cfg.nftMetadata.pickHexAndDecode(false, "rom")
   );
 
   const feeOptions = new MintNftFeeOptions(

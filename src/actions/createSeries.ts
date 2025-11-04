@@ -78,7 +78,7 @@ export async function createSeries(cfg: createSeriesCfg, dryRun: boolean) {
     cfg.seriesMetadata.pickString(false, "imageURL"),
     cfg.seriesMetadata.pickString(false, "infoURL"),
     cfg.seriesMetadata.pickNumber(false, "royalties"),
-    cfg.seriesMetadata.pickHexAndDecode(false, "ROM")
+    cfg.seriesMetadata.pickHexAndDecode(false, "rom")
   );
 
   const feeOptions = new CreateSeriesFeeOptions(

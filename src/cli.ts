@@ -165,7 +165,6 @@ async function main() {
       describe:
         "Decimal places for fungible token (required when --token-type fungible)",
     })
-    .option("nft-name", { type: "string", describe: "NFT metadata name" })
     .option("dry-run", {
       type: "boolean",
       describe: "Do not broadcast transactions; just show payloads",
