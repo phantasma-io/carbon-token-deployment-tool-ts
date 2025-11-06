@@ -3,6 +3,7 @@ import {
   CarbonBlob,
   CreateSeriesFeeOptions,
   CreateTokenSeriesTxHelper,
+  MetadataField,
   PhantasmaAPI,
   PhantasmaKeys,
   SeriesInfoBuilder,
@@ -25,7 +26,7 @@ export class createSeriesCfg {
     public gasFeeMultiplier: bigint,
     public createSeriesMaxData: bigint,
     public seriesSchema: VmStructSchema,
-    public seriesMetadata: Metadata
+    public seriesMetadata: MetadataField[]
   ) {
     this.rpc = rpc;
     this.nexus = nexus;
@@ -47,9 +48,7 @@ export class createSeriesCfg {
     return {
       ...rest,
       owner,
-      seriesMetadata: seriesMetadata.fields
-        ? Object.fromEntries(Object.entries(seriesMetadata.fields))
-        : null,
+      seriesMetadata
     };
   }
 }
@@ -73,12 +72,7 @@ export async function createSeries(cfg: createSeriesCfg, dryRun: boolean) {
     0,
     0,
     senderPubKey,
-    cfg.seriesMetadata.pickString(false, "name"),
-    cfg.seriesMetadata.pickString(false, "description"),
-    cfg.seriesMetadata.pickString(false, "imageURL"),
-    cfg.seriesMetadata.pickString(false, "infoURL"),
-    cfg.seriesMetadata.pickNumber(false, "royalties"),
-    cfg.seriesMetadata.pickHexAndDecode(false, "rom")
+    cfg.seriesMetadata
   );
 
   const feeOptions = new CreateSeriesFeeOptions(

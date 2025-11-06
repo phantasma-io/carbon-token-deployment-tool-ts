@@ -3,7 +3,7 @@ import path from "path";
 import toml from "@iarna/toml";
 import yargs from "yargs/yargs";
 import { Metadata, MetadataFields } from "./actions/helpers";
-import { TokenSchemas, TokenSchemasBuilder } from "phantasma-sdk-ts";
+import { MetadataField, TokenSchemas, TokenSchemasBuilder } from "phantasma-sdk-ts";
 
 export type TokenType = "nft" | "fungible";
 
@@ -25,10 +25,10 @@ export interface Config {
 
   // Series
   carbonTokenSeriesId?: number | null;
-  seriesMetadata?: Metadata | null;
+  seriesMetadata?: MetadataField[] | null;
 
   // NFT-specific
-  nftMetadata?: Metadata | null;
+  nftMetadata?: MetadataField[] | null;
 
   // Limits / sizes
   createTokenMaxData?: bigint | null;
@@ -61,6 +61,77 @@ function tryParseJSON<T = unknown>(value?: string | null): T | undefined {
     // ignore parse errors; caller will handle fallback
     return undefined;
   }
+}
+
+function makeMetadataField(
+  name: string,
+  value: unknown,
+  context: string,
+): MetadataField {
+  const trimmed = name.trim();
+  if (!trimmed) {
+    throw new Error(`${context}: metadata field name cannot be empty`);
+  }
+
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "bigint" ||
+    value instanceof Uint8Array
+  ) {
+    const field = new MetadataField();
+    field.name = trimmed;
+    field.value = value;
+    return field;
+  }
+
+  throw new Error(
+    `${context}.${trimmed} must be a string, number, bigint or Uint8Array`,
+  );
+}
+
+function parseMetadataFieldArray(
+  raw: string | undefined,
+  context: string,
+): MetadataField[] | undefined {
+  if (!raw) {
+    return undefined;
+  }
+
+  const parsed = tryParseJSON<unknown>(raw);
+  if (parsed === undefined) {
+    return undefined;
+  }
+
+  if (Array.isArray(parsed)) {
+    return parsed.map((entry, idx) => {
+      if (
+        entry &&
+        typeof entry === "object" &&
+        !Array.isArray(entry) &&
+        "name" in entry &&
+        "value" in entry &&
+        typeof (entry as any).name === "string"
+      ) {
+        return makeMetadataField(
+          (entry as any).name,
+          (entry as any).value,
+          `${context}[${idx}]`,
+        );
+      }
+      throw new Error(
+        `${context}[${idx}] must be an object like { name: string; value: ... }`,
+      );
+    });
+  }
+
+  if (parsed && typeof parsed === "object") {
+    return Object.entries(parsed as Record<string, unknown>).map(
+      ([name, value]) => makeMetadataField(name, value, context),
+    );
+  }
+
+  throw new Error(`${context} must be a JSON object or array`);
 }
 
 /**
@@ -171,11 +242,11 @@ export function loadConfig(options?: {
     rom: null,
     tokenSchemas: new TokenSchemas(),
     tokenMetadata: new Metadata(undefined, "token_metadata"),
-    seriesMetadata: new Metadata(undefined, "series_metadata"),
+    seriesMetadata: null,
     tokenType: null,
     tokenMaxSupply: null,
     fungibleDecimals: null,
-    nftMetadata: new Metadata(undefined, "nft_metadata"),
+    nftMetadata: null,
     createTokenMaxData: null,
     createTokenSeriesMaxData: null,
     mintTokenMaxData: null,
@@ -247,7 +318,13 @@ export function loadConfig(options?: {
     "token-metadata",
     "token_metadata",
   );
-  cfg.tokenMetadata = new Metadata(tryParseJSON<MetadataFields>(tmfRaw), "token_metadata");
+  if (tmfRaw) {
+    const tokenMetadataFields = tryParseJSON<MetadataFields>(tmfRaw);
+    if (!tokenMetadataFields) {
+      throw new Error("token_metadata must be valid JSON");
+    }
+    cfg.tokenMetadata = new Metadata(tokenMetadataFields, "token_metadata");
+  }
 
   if(cfg.tokenType == "nft") {
     const smfRaw = pickValue(
@@ -255,7 +332,7 @@ export function loadConfig(options?: {
       "series-metadata",
       "series_metadata",
     );
-    cfg.seriesMetadata = new Metadata(tryParseJSON<MetadataFields>(smfRaw), "series_metadata");
+    cfg.seriesMetadata = parseMetadataFieldArray(smfRaw, "series_metadata");
   }
 
   const rawMaxSupply =
@@ -283,7 +360,7 @@ export function loadConfig(options?: {
       "nft-metadata",
       "nft_metadata",
     );
-    cfg.nftMetadata = new Metadata(tryParseJSON<MetadataFields>(nmfRaw), "nft_metadata");
+    cfg.nftMetadata = parseMetadataFieldArray(nmfRaw, "nft_metadata");
   }
 
   // Limits and sizes

@@ -10,9 +10,10 @@ import {
   PhantasmaKeys,
   SignedTxMsg,
   VmStructSchema,
+  MetadataField,
 } from "phantasma-sdk-ts";
 import { waitForTx } from "./waitForTx";
-import { bigintReplacer, Metadata } from "./helpers";
+import { bigintReplacer } from "./helpers";
 
 export class mintNftTokenCfg {
   constructor(
@@ -22,7 +23,7 @@ export class mintNftTokenCfg {
     public carbonTokenId: bigint,
     public carbonSeriesId: number,
     public nftRomSchema: VmStructSchema,
-    public nftMetadata: Metadata,
+    public nftMetadata: MetadataField[],
     public gasFeeBase: bigint,
     public gasFeeMultiplier: bigint,
     public mintTokenMaxData: bigint,
@@ -48,9 +49,7 @@ export class mintNftTokenCfg {
     return {
       ...rest,
       owner,
-      nftMetadata: nftMetadata.fields
-        ? Object.fromEntries(Object.entries(nftMetadata.fields))
-        : null
+      nftMetadata
     };
   }
 }
@@ -69,12 +68,7 @@ export async function mintNftToken(cfg: mintNftTokenCfg, dryRun: boolean) {
   const rom = NftRomBuilder.buildAndSerialize(
     cfg.nftRomSchema,
     newPhantasmaNftId,
-    cfg.nftMetadata.pickString(false, "name"),
-    cfg.nftMetadata.pickString(false, "description"),
-    cfg.nftMetadata.pickString(false, "imageURL"),
-    cfg.nftMetadata.pickString(false, "infoURL"),
-    cfg.nftMetadata.pickNumber(false, "royalties"),
-    cfg.nftMetadata.pickHexAndDecode(false, "rom")
+    cfg.nftMetadata
   );
 
   const feeOptions = new MintNftFeeOptions(
