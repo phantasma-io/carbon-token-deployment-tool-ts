@@ -50,7 +50,7 @@ Key sections in `config/config.example.toml`:
   token_metadata = """
   {
     "name": "My test token!",
-    "icon": "data:image/svg+xml;base64,...",
+    "icon": "data:image/webp;base64,...",
     "url": "https://example.com",
     "description": "Token description",
     "extraField": "Optional custom data"
@@ -59,7 +59,7 @@ Key sections in `config/config.example.toml`:
   ```
 
   - `token_metadata` is **mandatory** for all tokens. Required fields: `name`, `icon`, `url`, `description`.  
-    The `icon` must be a base64 encoded data URI (`data:image/png;base64,...`, `data:image/jpeg;base64,...`, or `data:image/svg+xml;base64,...`).
+    The `icon` must be a base64 encoded data URI (`data:image/png;base64,...`, `data:image/jpeg;base64,...`, or `data:image/webp;base64,...`).
   - `series_metadata` (optional) defines shared metadata for NFT series. Populate when metadata should be stored once at the series level.
   - `nft_metadata` (optional) defines per-instance defaults for minting. You can override fields per mint by editing this block before running `--mint-nft`.
   - Numeric settings such as `royalties` should be plain numbers (e.g. `10000000` for 1%).
