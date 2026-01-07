@@ -1,6 +1,6 @@
 {
   "name": "carbon-token-deployment-tool-ts",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Token deployment tool for Phantasma blockchain",
   "private": true,
   "type": "commonjs",
@@ -32,7 +32,7 @@
   "license": "MIT",
   "dependencies": {
     "@iarna/toml": "*",
-    "phantasma-sdk-ts": "^0.2.0-rc.14",
+    "phantasma-sdk-ts": "^0.2.4",
     "yargs": "*"
   },
   "devDependencies": {
