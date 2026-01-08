@@ -68,7 +68,7 @@ export async function createSeries(cfg: createSeriesCfg, dryRun: boolean) {
 
   const info = SeriesInfoBuilder.build(
     cfg.seriesSchema,
-    await getRandomPhantasmaId(),
+    newPhantasmaSeriesId,
     0,
     0,
     senderPubKey,
