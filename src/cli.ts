@@ -21,6 +21,55 @@ import { setLogger } from "phantasma-sdk-ts";
  *  - mint-nft
  */
 
+function printHelp(): void {
+  const text = `Usage:
+  pha-deploy --create-token [options]
+  pha-deploy --create-series [options]
+  pha-deploy --mint-nft [options]
+
+Actions:
+  --create-token       Create a token
+  --create-series      Create a token series
+  --mint-nft           Mint tokens
+
+Common flags:
+  --config <path>               Path to TOML config file (default: config.toml)
+  --dry-run                     Do not broadcast transactions; just show payloads
+  --rpc-log                     Enable SDK JSON-RPC logging (full response payloads)
+  --settings-log                Print resolved configuration before executing an action
+  --help                        Show this help
+  --version                     Show version number
+
+Overrides (replace values from config.toml when provided):
+  --rpc <url>                   RPC endpoint (fallback: https://testnet.phantasma.info/rpc)
+  --nexus <name>                Chain nexus (example: mainnet or testnet)
+  --wif <wif>                   WIF for signing
+  --symbol <symbol>             Token symbol
+  --token-type <nft|fungible>   Token type to create (default: nft)
+  --token-max-supply <int>      Non-negative integer; required when token-type=fungible
+  --fungible-max-supply <int>   Alias for --token-max-supply
+  --fungible-decimals <0..255>  Decimal places; required when token-type=fungible
+  --carbon-token-id <int>       Existing carbon token ID (for series or mint)
+  --carbon-token-series-id <int> Existing series ID (for mint)
+  --rom <hex>                   Token ROM hex (optional; for token creation)
+  --token-schemas <json>        JSON string with schemas (seriesMetadata, rom, ram)
+  --token-metadata <json>       JSON string of token metadata fields
+  --series-metadata <json>      JSON object or array of series metadata fields
+  --nft-metadata <json>         JSON object or array of NFT metadata fields
+  --create-token-max-data <int> Max data for create-token tx
+  --create-token-series-max-data <int> Max data for create-series tx
+  --mint-token-max-data <int>   Max data for mint-nft tx
+  --gas-fee-base <int>          Gas fee base
+  --gas-fee-create-token-base <int>   Gas fee base for create-token
+  --gas-fee-create-token-symbol <int> Gas fee per symbol
+  --gas-fee-create-token-series <int> Gas fee for create-series
+  --gas-fee-multiplier <int>    Gas fee multiplier
+
+pha-deploy - Phantasma token deployment and minting CLI
+`;
+  console.log(text);
+}
+
 function requireArg<T>(
   value: T,
   name: string,
@@ -149,21 +198,30 @@ async function actionMintNft(
 /* ------------------------------- Main ------------------------------- */
 
 async function main() {
-  // Pre-parse --config early so the TOML file can be loaded before the main yargs parsing.
-  const pre = yargs(hideBin(process.argv))
+  const rawArgv = hideBin(process.argv);
+
+  // Pre-parse --config and --help early so the TOML file can be loaded before the main yargs parsing.
+  const pre = yargs(rawArgv)
     .option("config", {
       type: "string",
       alias: "c",
       description: "Path to TOML config file (default: config.toml)",
     })
+    .option("help", {
+      type: "boolean",
+    })
+    .alias("h", "help")
     .help(false)
+    .version(false)
     .parseSync();
 
-  // Load TOML configuration (if present) before doing full parsing
-  const cfg = loadConfig({ configPath: pre.config ?? null });
+  if ((pre as any).help) {
+    printHelp();
+    return;
+  }
 
   // Minimal yargs parsing for the top-level CLI behavior
-  const argv = await yargs(hideBin(process.argv))
+  const parser = yargs(rawArgv)
     .scriptName("pha-deploy")
     .usage("Usage: $0 [options] [--create-token|--mint-nft|--transfer]")
     .option("rpc", { type: "string", describe: "RPC endpoint" })
@@ -198,6 +256,11 @@ async function main() {
       type: "boolean",
       describe: "Print resolved configuration before executing an action",
     })
+    .option("help", {
+      type: "boolean",
+      describe: "Show help",
+    })
+    .alias("h", "help")
     .option("config", {
       type: "string",
       describe:
@@ -209,10 +272,17 @@ async function main() {
       describe: "Create a token series",
     })
     .option("mint-nft", { type: "boolean", describe: "Mint tokens" })
-    .help()
-    .alias("h", "help")
-    .epilog("pha-deploy - Phantasma token deployment and minting CLI")
-    .parseAsync();
+    .version()
+    .epilog("pha-deploy - Phantasma token deployment and minting CLI");
+
+  const argv = await parser.parseAsync();
+  if ((argv as any).help) {
+    printHelp();
+    return;
+  }
+
+  // Load TOML configuration (if present) before doing full parsing
+  const cfg = loadConfig({ configPath: pre.config ?? null });
 
   const rpcLogEnabled = Boolean((argv as any)["rpc-log"]);
   const settingsLogEnabled = Boolean((argv as any)["settings-log"]);
@@ -238,8 +308,10 @@ async function main() {
 
   // One-shot actions: pick the first matching action
   const actions = ["create-token", "create-series", "mint-nft"];
+  let foundAction = false;
   for (const action of actions) {
     if ((argv as any)[action]) {
+      foundAction = true;
       switch (action) {
         case "create-token": {
           await actionCreateToken(cfg, dryRun, settingsLogEnabled);
@@ -258,10 +330,9 @@ async function main() {
   }
 
   // No action requested -> show help
-  console.log(
-    "No action specified. Pass an action flag (e.g. --create-token or --mint-nft).",
-  );
-  console.log("Use --help to see available flags.");
+  if (!foundAction) {
+    printHelp();
+  }
 }
 
 /* ----------------------------- Run Script ---------------------------- */

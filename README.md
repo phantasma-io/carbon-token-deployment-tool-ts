@@ -197,28 +197,28 @@ Common utility flags:
 
 Configuration overrides (values override `config.toml` when provided):
 
-- `--rpc <url>` – RPC endpoint.
-- `--nexus <nexus>` – nexus name.
+- `--rpc <url>` – RPC endpoint (fallback: `https://testnet.phantasma.info/rpc`).
+- `--nexus <name>` – chain nexus (example: `mainnet` or `testnet`).
 - `--wif <wif>` – signer WIF.
 - `--symbol <symbol>` – token symbol.
-- `--token-type <nft|fungible>` – token kind.
-- `--token-max-supply <number>` / `--fungible-max-supply <number>` – maximum supply.
-- `--fungible-decimals <number>` – decimals for fungible token.
-- `--carbon-token-id <id>` – existing Carbon token id.
-- `--carbon-token-series-id <id>` – existing Carbon series id.
+- `--token-type <nft|fungible>` – token kind (default: `nft`).
+- `--token-max-supply <int>` / `--fungible-max-supply <int>` – max supply (required when token-type is `fungible`).
+- `--fungible-decimals <0..255>` – decimals for fungible token (required when token-type is `fungible`).
+- `--carbon-token-id <int>` – existing carbon token id (for series or mint).
+- `--carbon-token-series-id <int>` – existing series id (for mint).
 - `--rom <hex>` – token ROM as hex string.
-- `--token-schemas '<json>'` – inline JSON for schemas.
-- `--token-metadata '<json>'` – inline JSON for token metadata.
-- `--series-metadata '<json>'` – inline JSON for series metadata.
-- `--nft-metadata '<json>'` – inline JSON for NFT metadata.
-- `--create-token-max-data <number>` – payload limit for token creation.
-- `--create-token-series-max-data <number>` – payload limit for series creation.
-- `--mint-token-max-data <number>` – payload limit for minting.
-- `--gas-fee-base <number>` – base gas fee.
-- `--gas-fee-create-token-base <number>` – gas fee for token creation.
-- `--gas-fee-create-token-symbol <number>` – symbol registration fee.
-- `--gas-fee-create-token-series <number>` – fee for series creation.
-- `--gas-fee-multiplier <number>` – multiplier applied to gas fee.
+- `--token-schemas '<json>'` – inline JSON for token schemas (`seriesMetadata`, `rom`, `ram`).
+- `--token-metadata '<json>'` – inline JSON for token metadata fields.
+- `--series-metadata '<json>'` – inline JSON object or array of `{ name, value }` pairs.
+- `--nft-metadata '<json>'` – inline JSON object or array of `{ name, value }` pairs.
+- `--create-token-max-data <int>` – payload limit for token creation.
+- `--create-token-series-max-data <int>` – payload limit for series creation.
+- `--mint-token-max-data <int>` – payload limit for minting.
+- `--gas-fee-base <int>` – base gas fee.
+- `--gas-fee-create-token-base <int>` – gas fee for token creation.
+- `--gas-fee-create-token-symbol <int>` – symbol registration fee.
+- `--gas-fee-create-token-series <int>` – fee for series creation.
+- `--gas-fee-multiplier <int>` – multiplier applied to gas fee.
 
 Notes:
 - JSON arguments must be passed as single-line quoted strings; for substantial edits, updating `config.toml` is usually more convenient.
