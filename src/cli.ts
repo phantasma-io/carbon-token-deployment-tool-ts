@@ -2,9 +2,11 @@
 import { hideBin } from "yargs/helpers";
 import yargs from "yargs";
 import loadConfig, { Config, TokenType } from "./config";
+import { inspect } from "node:util";
 import { createToken, createTokenCfg } from "./actions/createToken";
 import { createSeries, createSeriesCfg } from "./actions/createSeries";
 import { mintNftToken, mintNftTokenCfg } from "./actions/mintNftToken";
+import { setLogger } from "phantasma-sdk-ts";
 
 /**
  * CLI for pha-deploy.
@@ -29,7 +31,11 @@ function requireArg<T>(
 }
 
 /* ----------------------------- Actions ----------------------------- */
-async function actionCreateToken(cfg: Config, dryRun: boolean) {
+async function actionCreateToken(
+  cfg: Config,
+  dryRun: boolean,
+  logSettings: boolean,
+) {
   requireArg(cfg.rpc, "rpc");
   requireArg(cfg.nexus, "nexus");
   requireArg(cfg.wif, "wif");
@@ -46,6 +52,8 @@ async function actionCreateToken(cfg: Config, dryRun: boolean) {
   if (tokenType === "fungible") {
     requireArg(cfg.tokenMaxSupply, "token_max_supply");
     requireArg(cfg.fungibleDecimals, "fungible_decimals");
+  } else {
+    requireArg(cfg.tokenSchemas, "token_schemas");
   }
 
   await createToken(
@@ -66,10 +74,15 @@ async function actionCreateToken(cfg: Config, dryRun: boolean) {
       cfg.fungibleDecimals,
     ),
     dryRun,
+    logSettings,
   );
 }
 
-async function actionCreateSeries(cfg: Config, dryRun: boolean) {
+async function actionCreateSeries(
+  cfg: Config,
+  dryRun: boolean,
+  logSettings: boolean,
+) {
   requireArg(cfg.rpc, "rpc");
   requireArg(cfg.nexus, "nexus");
   requireArg(cfg.wif, "wif");
@@ -95,10 +108,15 @@ async function actionCreateSeries(cfg: Config, dryRun: boolean) {
       cfg.seriesMetadata
     ),
     dryRun,
+    logSettings,
   );
 }
 
-async function actionMintNft(cfg: Config, dryRun: boolean) {
+async function actionMintNft(
+  cfg: Config,
+  dryRun: boolean,
+  logSettings: boolean,
+) {
   requireArg(cfg.rpc, "rpc");
   requireArg(cfg.nexus, "nexus");
   requireArg(cfg.wif, "wif");
@@ -124,6 +142,7 @@ async function actionMintNft(cfg: Config, dryRun: boolean) {
       cfg.mintTokenMaxData,
     ),
     dryRun,
+    logSettings,
   );
 }
 
@@ -170,6 +189,15 @@ async function main() {
       type: "boolean",
       describe: "Do not broadcast transactions; just show payloads",
     })
+    .option("rpc-log", {
+      type: "boolean",
+      describe:
+        "Enable SDK RPC logging (prints full JSON-RPC responses for debugging)",
+    })
+    .option("settings-log", {
+      type: "boolean",
+      describe: "Print resolved configuration before executing an action",
+    })
     .option("config", {
       type: "string",
       describe:
@@ -183,8 +211,27 @@ async function main() {
     .option("mint-nft", { type: "boolean", describe: "Mint tokens" })
     .help()
     .alias("h", "help")
-    .epilog("pha-deploy - minimal template")
+    .epilog("pha-deploy - Phantasma token deployment and minting CLI")
     .parseAsync();
+
+  const rpcLogEnabled = Boolean((argv as any)["rpc-log"]);
+  const settingsLogEnabled = Boolean((argv as any)["settings-log"]);
+  if (rpcLogEnabled) {
+    // SDK logs JSON-RPC responses as raw objects; inspect avoids [Object] output.
+    setLogger({
+      log: (...args: unknown[]) => {
+        const formatted = args.map((arg) =>
+          typeof arg === "string"
+            ? arg
+            : inspect(arg, { depth: null, colors: false }),
+        );
+        console.log(...formatted);
+      },
+    });
+  } else {
+    // Enforce silent SDK logs unless explicitly enabled.
+    setLogger();
+  }
 
   // Determine dry-run (CLI flag overrides config)
   const dryRun = Boolean((argv as any)["dry-run"]) || cfg.dryRun || false;
@@ -195,15 +242,15 @@ async function main() {
     if ((argv as any)[action]) {
       switch (action) {
         case "create-token": {
-          await actionCreateToken(cfg, dryRun);
+          await actionCreateToken(cfg, dryRun, settingsLogEnabled);
           return;
         }
         case "create-series": {
-          await actionCreateSeries(cfg, dryRun);
+          await actionCreateSeries(cfg, dryRun, settingsLogEnabled);
           return;
         }
         case "mint-nft": {
-          await actionMintNft(cfg, dryRun);
+          await actionMintNft(cfg, dryRun, settingsLogEnabled);
           return;
         }
       }

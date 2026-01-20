@@ -1,6 +1,6 @@
 # pha-deploy
 
-CLI utility for deploying Carbon fungible tokens and NFTs on the Phantasma blockchain. The tool consumes structured metadata and token schemas defined in TOML configuration files and relies on the latest `phantasma-sdk-ts` builders for serialization.
+CLI utility for deploying fungible tokens and NFTs on the Phantasma blockchain. The tool consumes structured metadata and token schemas defined in TOML configuration files and relies on the latest `phantasma-sdk-ts` builders for serialization.
 
 - Three primary actions: `--create-token`, `--create-series`, `--mint-nft`.
 - Configuration-first workflow: fill in `config.toml` (JSON blobs embedded in TOML) and let the CLI generate and submit Carbon transactions.
@@ -192,6 +192,8 @@ Common utility flags:
 
 - `--config <path>` – load an alternate TOML file.
 - `--dry-run` – skip broadcasting even if the config has `dry_run = false`.
+- `--rpc-log` – enable verbose SDK JSON-RPC logging (full response payloads).
+- `--settings-log` – print resolved settings before executing an action.
 
 Configuration overrides (values override `config.toml` when provided):
 

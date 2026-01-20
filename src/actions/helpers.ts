@@ -1,8 +1,25 @@
-import { hexToBytes } from "phantasma-sdk-ts";
+import { bytesToHex, hexToBytes } from "phantasma-sdk-ts";
 
 // Helper: stringify BigInt as string
 export const bigintReplacer = (_: string, v: unknown) =>
   typeof v === "bigint" ? v.toString() : v;
+
+export const logReplacer = (_: string, v: unknown) => {
+  if (typeof v === "bigint") {
+    return v.toString();
+  }
+  if (v instanceof Uint8Array) {
+    return bytesToHex(v);
+  }
+  if (v && typeof v === "object" && typeof (v as { ToHex?: () => string }).ToHex === "function") {
+    return (v as { ToHex: () => string }).ToHex();
+  }
+  return v;
+};
+
+// Normalize nested SDK objects into readable JSON (hex strings instead of byte arrays).
+export const formatForLog = (value: unknown): string =>
+  JSON.stringify(value, logReplacer, 2);
 
 export type MetadataFields = Record<string, unknown>;
 

@@ -13,7 +13,7 @@ import {
   hexToBytes,
 } from "phantasma-sdk-ts";
 import { waitForTx } from "./waitForTx";
-import { bigintReplacer, Metadata } from "./helpers";
+import { bigintReplacer, Metadata, formatForLog } from "./helpers";
 
 export class createSeriesCfg {
   constructor(
@@ -55,16 +55,22 @@ export class createSeriesCfg {
 
 
 
-export async function createSeries(cfg: createSeriesCfg, dryRun: boolean) {
+export async function createSeries(
+  cfg: createSeriesCfg,
+  dryRun: boolean,
+  logSettings: boolean = false,
+) {
   const txSender = PhantasmaKeys.fromWIF(cfg.wif);
   const senderPubKey = new Bytes32(txSender.PublicKey);
 
   const newPhantasmaSeriesId = await getRandomPhantasmaId();
 
-  console.log(
-    `Creating new series '${newPhantasmaSeriesId}' using these settings:`,
-    JSON.stringify(cfg.toPrintable(), bigintReplacer, 2),
-  );
+  if (logSettings) {
+    console.log(
+      `Creating new series '${newPhantasmaSeriesId}' using these settings:`,
+      JSON.stringify(cfg.toPrintable(), bigintReplacer, 2),
+    );
+  }
 
   const info = SeriesInfoBuilder.build(
     cfg.seriesSchema,
@@ -91,7 +97,7 @@ export async function createSeries(cfg: createSeriesCfg, dryRun: boolean) {
 
   if (dryRun) {
     console.log(`[dry-run] Prepared tx (not sent): ${tx}`);
-    console.log(CarbonBlob.NewFromBytes(SignedTxMsg, hexToBytes(tx), 0));
+    console.log(formatForLog(CarbonBlob.NewFromBytes(SignedTxMsg, hexToBytes(tx), 0)));
     return;
   }
 

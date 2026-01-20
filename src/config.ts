@@ -230,7 +230,10 @@ export function loadConfig(options?: {
 
   // Parse CLI args using yargs; pass provided argv or process.argv
   const rawArgv = options?.argv ?? process.argv.slice(2);
-  const argv = yargs(rawArgv).parseSync();
+  const argv = yargs(rawArgv)
+    .help(false)
+    .version(false)
+    .parseSync();
 
   const cfg: Config = {
     rpc: "",
@@ -240,7 +243,7 @@ export function loadConfig(options?: {
     carbonTokenId: null,
     carbonTokenSeriesId: null,
     rom: null,
-    tokenSchemas: new TokenSchemas(),
+    tokenSchemas: null,
     tokenMetadata: new Metadata(undefined, "token_metadata"),
     seriesMetadata: null,
     tokenType: null,
@@ -288,26 +291,22 @@ export function loadConfig(options?: {
   const tokenTypeRaw = pickValue(argv, "token-type", "token_type") as
     | string
     | undefined;
-  if(!tokenTypeRaw){
-    throw Error("Token type must be provided");
-  }
-  const lowered = tokenTypeRaw.trim().toLowerCase();
-  if (lowered === "fungible" || lowered === "nft") {
-    cfg.tokenType = lowered;
-  } else {
-    throw Error(`Unsupported token type ${lowered}`);
+  if (tokenTypeRaw) {
+    const lowered = tokenTypeRaw.trim().toLowerCase();
+    if (lowered === "fungible" || lowered === "nft") {
+      cfg.tokenType = lowered;
+    } else {
+      throw Error(`Unsupported token type ${lowered}`);
+    }
   }
 
   // tokenSchemas
-  if(cfg.tokenType == "nft") {
-    const tokenSchemasRaw = pickValue<string>(
-      argv,
-      "token-schemas",
-      "token_schemas",
-    );
-    if(!tokenSchemasRaw){
-      throw Error("Token schemas must be provided");
-    }
+  const tokenSchemasRaw = pickValue<string>(
+    argv,
+    "token-schemas",
+    "token_schemas",
+  );
+  if (tokenSchemasRaw) {
     cfg.tokenSchemas = TokenSchemasBuilder.fromJson(tokenSchemasRaw);
   }
 
@@ -326,14 +325,12 @@ export function loadConfig(options?: {
     cfg.tokenMetadata = new Metadata(tokenMetadataFields, "token_metadata");
   }
 
-  if(cfg.tokenType == "nft") {
-    const smfRaw = pickValue(
-      argv,
-      "series-metadata",
-      "series_metadata",
-    );
-    cfg.seriesMetadata = parseMetadataFieldArray(smfRaw, "series_metadata");
-  }
+  const smfRaw = pickValue(
+    argv,
+    "series-metadata",
+    "series_metadata",
+  );
+  cfg.seriesMetadata = parseMetadataFieldArray(smfRaw, "series_metadata") ?? null;
 
   const rawMaxSupply =
     (pickValue(argv, "token-max-supply", "token_max_supply") as
@@ -353,15 +350,13 @@ export function loadConfig(options?: {
         | undefined,
     ) ?? null;
 
-  if(cfg.tokenType == "nft") {
-    // NFT metadata
-    const nmfRaw = pickValue(
-      argv,
-      "nft-metadata",
-      "nft_metadata",
-    );
-    cfg.nftMetadata = parseMetadataFieldArray(nmfRaw, "nft_metadata");
-  }
+  // NFT metadata
+  const nmfRaw = pickValue(
+    argv,
+    "nft-metadata",
+    "nft_metadata",
+  );
+  cfg.nftMetadata = parseMetadataFieldArray(nmfRaw, "nft_metadata") ?? null;
 
   // Limits and sizes
   cfg.createTokenMaxData =

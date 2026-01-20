@@ -14,7 +14,7 @@ import {
 } from "phantasma-sdk-ts";
 import { TokenType } from "../config";
 import { waitForTx } from "./waitForTx";
-import { bigintReplacer, Metadata } from "./helpers";
+import { bigintReplacer, Metadata, formatForLog } from "./helpers";
 
 export class createTokenCfg {
   constructor(
@@ -61,14 +61,20 @@ export class createTokenCfg {
   }
 }
 
-export async function createToken(cfg: createTokenCfg, dryRun: boolean) {
+export async function createToken(
+  cfg: createTokenCfg,
+  dryRun: boolean,
+  logSettings: boolean = false,
+) {
   const txSender = PhantasmaKeys.fromWIF(cfg.wif);
   const senderPubKey = new Bytes32(txSender.PublicKey);
 
-  console.log(
-    "Deploying new token using these settings:",
-    JSON.stringify(cfg.toPrintable(), bigintReplacer, 2),
-  );
+  if (logSettings) {
+    console.log(
+      "Deploying new token using these settings:",
+      JSON.stringify(cfg.toPrintable(), bigintReplacer, 2),
+    );
+  }
 
   if (cfg.tokenMetadataFields == null) {
     throw Error('Token metadata is mandatory');
@@ -136,7 +142,7 @@ export async function createToken(cfg: createTokenCfg, dryRun: boolean) {
 
   if (dryRun) {
     console.log(`[dry-run] Prepared tx (not sent): ${tx}`);
-    console.log(CarbonBlob.NewFromBytes(SignedTxMsg, hexToBytes(tx), 0));
+    console.log(formatForLog(CarbonBlob.NewFromBytes(SignedTxMsg, hexToBytes(tx), 0)));
     return;
   }
 

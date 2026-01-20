@@ -52,7 +52,7 @@ ctf: build
 
 [group('run')]
 ctd: build
-    npm start -- --create-token --dry-run
+    npm start -- --create-token --rpc-log --settings-log --dry-run
 
 [group('run')]
 cs: build
@@ -60,7 +60,7 @@ cs: build
 
 [group('run')]
 csd: build
-    npm start -- --create-series --dry-run
+    npm start -- --create-series --rpc-log --settings-log --dry-run
 
 [group('run')]
 mn: build
@@ -68,7 +68,7 @@ mn: build
 
 [group('run')]
 mnd: build
-    npm start -- --mint-nft --dry-run
+    npm start -- --mint-nft --rpc-log --settings-log --dry-run
 
 [group('manage')]
 switch-to-local-ts-sdk:

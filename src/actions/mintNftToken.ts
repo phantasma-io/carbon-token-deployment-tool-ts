@@ -13,7 +13,7 @@ import {
   MetadataField,
 } from "phantasma-sdk-ts";
 import { waitForTx } from "./waitForTx";
-import { bigintReplacer } from "./helpers";
+import { bigintReplacer, formatForLog } from "./helpers";
 
 export class mintNftTokenCfg {
   constructor(
@@ -54,16 +54,22 @@ export class mintNftTokenCfg {
   }
 }
 
-export async function mintNftToken(cfg: mintNftTokenCfg, dryRun: boolean) {
+export async function mintNftToken(
+  cfg: mintNftTokenCfg,
+  dryRun: boolean,
+  logSettings: boolean = false,
+) {
   const txSender = PhantasmaKeys.fromWIF(cfg.wif);
   const senderPubKey = new Bytes32(txSender.PublicKey);
 
   const newPhantasmaNftId = await getRandomPhantasmaId();
 
-  console.log(
-    `Minting new token '${newPhantasmaNftId}' using these settings:`,
-    JSON.stringify(cfg.toPrintable(), bigintReplacer, 2),
-  );
+  if (logSettings) {
+    console.log(
+      `Minting new token '${newPhantasmaNftId}' using these settings:`,
+      JSON.stringify(cfg.toPrintable(), bigintReplacer, 2),
+    );
+  }
 
   const rom = NftRomBuilder.buildAndSerialize(
     cfg.nftRomSchema,
@@ -89,7 +95,7 @@ export async function mintNftToken(cfg: mintNftTokenCfg, dryRun: boolean) {
 
   if (dryRun) {
     console.log(`[dry-run] Prepared tx (not sent): ${tx}`);
-    console.log(CarbonBlob.NewFromBytes(SignedTxMsg, hexToBytes(tx), 0));
+    console.log(formatForLog(CarbonBlob.NewFromBytes(SignedTxMsg, hexToBytes(tx), 0)));
     return;
   }
 
@@ -108,7 +114,7 @@ export async function mintNftToken(cfg: mintNftTokenCfg, dryRun: boolean) {
       result,
     );
     console.log(
-      `Deployed NFT with phantasma ID ${newPhantasmaNftId} and carbon NFT address ${carbonNftAddresses[0]}`,
+      `Deployed NFT with phantasma ID ${newPhantasmaNftId} and carbon NFT address ${carbonNftAddresses[0].ToHex()}`,
     );
   } else {
     console.log("Could not mint NFT");
