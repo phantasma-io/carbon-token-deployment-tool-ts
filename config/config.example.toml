@@ -1,4 +1,4 @@
-# Example TOML configuration for carbon-token-deployment-tool-ts
+# Example TOML configuration for pha-deploy
 #
 # Copy this file to `config.toml` and edit values as needed.
 # - Use `--config path/to/file` to point the CLI at a different file.

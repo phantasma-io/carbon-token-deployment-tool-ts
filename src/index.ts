@@ -1,9 +1,9 @@
 /**
- * Barrel file for carbon-token-deployment-tool-ts
+ * Barrel file for pha-deploy
  *
  * Re-exports config utilities and the CLI entrypoint so consumers can:
- *  - import { loadConfig, Config } from 'carbon-token-deployment-tool-ts'
- *  - import { main } from 'carbon-token-deployment-tool-ts'      (to run CLI programmatically)
+ *  - import { loadConfig, Config } from 'pha-deploy'
+ *  - import { main } from 'pha-deploy'      (to run CLI programmatically)
  *
  * This file is intentionally small — it simply re-exports the pieces implemented
  * in `src/config.ts` and `src/cli.ts`.

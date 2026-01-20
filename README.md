@@ -1,4 +1,4 @@
-# carbon-token-deployment-tool-ts
+# pha-deploy
 
 CLI utility for deploying Carbon fungible tokens and NFTs on the Phantasma blockchain. The tool consumes structured metadata and token schemas defined in TOML configuration files and relies on the latest `phantasma-sdk-ts` builders for serialization.
 
@@ -11,7 +11,13 @@ CLI utility for deploying Carbon fungible tokens and NFTs on the Phantasma block
 ## Quick Start
 
 ```bash
-# install dependencies
+# install globally (recommended for CLI usage)
+npm i -g pha-deploy
+
+# or run once via npx
+npx pha-deploy --help
+
+# local dev install
 npm install
 
 # copy the sample configuration and adjust it to your needs
@@ -21,7 +27,7 @@ cp config/config.example.toml config.toml
 npm run build
 
 # run an action (uses config.toml by default)
-npm start -- --create-token
+pha-deploy --create-token
 ```
 
 Helper `just` recipes are available (`just ct`, `just cs`, `just mn`, etc.) if you have [`just`](https://github.com/casey/just) installed.
@@ -136,7 +142,7 @@ Each action reads the active configuration, prints a summary (without exposing y
 - **Create a token**
 
   ```bash
-  npm start -- --create-token --config path/to/config.toml
+  pha-deploy --create-token --config path/to/config.toml
   ```
 
   Requirements:
@@ -147,7 +153,7 @@ Each action reads the active configuration, prints a summary (without exposing y
 - **Create an NFT series**
 
   ```bash
-  npm start -- --create-series --config path/to/config.toml
+  pha-deploy --create-series --config path/to/config.toml
   ```
 
   Requirements:
@@ -158,7 +164,7 @@ Each action reads the active configuration, prints a summary (without exposing y
 - **Mint an NFT**
 
   ```bash
-  npm start -- --mint-nft --config path/to/config.toml
+  pha-deploy --mint-nft --config path/to/config.toml
   ```
 
   Requirements:
@@ -169,7 +175,7 @@ Each action reads the active configuration, prints a summary (without exposing y
 Append `--dry-run` to any command to inspect the serialized payload without submitting it:
 
 ```bash
-npm start -- --create-token --dry-run
+pha-deploy --create-token --dry-run
 ```
 
 ---

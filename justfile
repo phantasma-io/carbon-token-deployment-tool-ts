@@ -73,3 +73,7 @@ mnd: build
 [group('manage')]
 switch-to-local-ts-sdk:
     cd ../phantasma-sdk-ts && just rb && cd - && rm -r --force node_modules/phantasma-sdk-ts && cp -r ../phantasma-sdk-ts node_modules/ && just rb
+
+[group('publish')]
+publish: build
+    npm publish

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { hideBin } from "yargs/helpers";
 import yargs from "yargs";
 import loadConfig, { Config, TokenType } from "./config";
@@ -6,7 +7,7 @@ import { createSeries, createSeriesCfg } from "./actions/createSeries";
 import { mintNftToken, mintNftTokenCfg } from "./actions/mintNftToken";
 
 /**
- * CLI for carbon-token-deployment-tool-ts.
+ * CLI for pha-deploy.
  *
  * Modes:
  *  - CLI one-shot: use flags to perform actions immediately
@@ -144,7 +145,7 @@ async function main() {
 
   // Minimal yargs parsing for the top-level CLI behavior
   const argv = await yargs(hideBin(process.argv))
-    .scriptName("carbon-token-deployment-tool-ts")
+    .scriptName("pha-deploy")
     .usage("Usage: $0 [options] [--create-token|--mint-nft|--transfer]")
     .option("rpc", { type: "string", describe: "RPC endpoint" })
     .option("nexus", { type: "string", describe: "Chain nexus" })
@@ -182,7 +183,7 @@ async function main() {
     .option("mint-nft", { type: "boolean", describe: "Mint tokens" })
     .help()
     .alias("h", "help")
-    .epilog("carbon-token-deployment-tool-ts - minimal template")
+    .epilog("pha-deploy - minimal template")
     .parseAsync();
 
   // Determine dry-run (CLI flag overrides config)

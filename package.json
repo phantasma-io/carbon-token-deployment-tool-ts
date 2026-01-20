@@ -1,16 +1,25 @@
 {
-  "name": "carbon-token-deployment-tool-ts",
-  "version": "0.1.1",
-  "description": "Token deployment tool for Phantasma blockchain",
-  "private": true,
+  "name": "pha-deploy",
+  "version": "0.2.0",
+  "description": "CLI token deployment tool for Phantasma blockchain",
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "carbon-token-deployment-tool-ts": "dist/cli.js"
+    "pha-deploy": "dist/cli.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "config/config.example.toml"
+  ],
   "engines": {
     "node": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phantasma-io/pha-deploy.git"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
